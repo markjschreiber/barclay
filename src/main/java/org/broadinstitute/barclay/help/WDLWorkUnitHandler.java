@@ -1,5 +1,6 @@
 package org.broadinstitute.barclay.help;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import org.broadinstitute.barclay.argparser.*;
@@ -395,11 +396,24 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
             final Class<?> argumentClass,
             final String docType, final String sourceContext) {
         final String convertedWDLType;
+        //final Pair<String, String> rawTypeConversionPair = transformToWDLType(argumentClass);
+        // finally, if this type is for an arg that is a WorkflowResource that is a workflow output, and its type
+        // is file, we need to use a different type (String) as the input type for this arg to prevent the workflow
+        // manager from attempting to localize the (non-existent) output file when localizing inputs
+//        final Pair<String, String> typeConversionPair =
+//                new ImmutablePair<>(
+//                        rawTypeConversionPair.getKey(),
+//                        transformWorkflowResourceOutputTypeToInputType(workflowResource, rawTypeConversionPair.getValue())
+//                );
         final Pair<String, String> typeConversionPair = transformToWDLType(argumentClass);
         if (typeConversionPair != null) {
-            convertedWDLType = docType.replace(typeConversionPair.getKey(), typeConversionPair.getValue());
+            convertedWDLType = docType.replace(
+                    typeConversionPair.getKey(),
+                    transformWorkflowResourceOutputTypeToInputType(workflowResource, typeConversionPair.getValue()));
         } else if (argumentClass.isEnum()) {
-             convertedWDLType = docType.replace(argumentClass.getSimpleName(), "String");
+             convertedWDLType = docType.replace(
+                     argumentClass.getSimpleName(),
+                     "String");
         } else {
             throw new RuntimeException(
                     String.format(
@@ -408,10 +422,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
                             argumentClass,
                             sourceContext));
         }
-        // finally, if this type is for an arg that is a WorkflowResource that is a workflow output, and its type
-        // is file, we need to use a different type (String) as the input type for this arg to prevent the workflow
-        // manager from attempting to localize the (non-existent) output file when localizing inputs
-        return transformWorkflowResourceOutputTypeToInputType(workflowResource, convertedWDLType);
+        return convertedWDLType;
     }
 
     /**

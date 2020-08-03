@@ -66,9 +66,9 @@ workflow TestArgumentContainer {
 
     # Required Arguments
     String requiredClpEnum
-    Array[File] requiredFileList
-    Array[File] companionDictionary
-    Array[File] companionIndex
+    Array[String] requiredFileList
+    Array[String] companionDictionary
+    Array[String] companionIndex
     Array[File] requiredInputFilesFromArgCollection
     String requiredStringInputFromArgCollection
     Array[String] requiredStringList
@@ -163,9 +163,9 @@ task TestArgumentContainer {
     String bootdisksizegbRequirements
     Array[File] positionalArgs
     String requiredClpEnum
-    Array[File] requiredFileList
-    Array[File] companionDictionary
-    Array[File] companionIndex
+    Array[String] requiredFileList
+    Array[String] companionDictionary
+    Array[String] companionIndex
     Array[File] requiredInputFilesFromArgCollection
     String requiredStringInputFromArgCollection
     Array[String] requiredStringList

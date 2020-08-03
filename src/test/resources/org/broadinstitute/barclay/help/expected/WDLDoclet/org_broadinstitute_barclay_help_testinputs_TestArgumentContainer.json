@@ -12,7 +12,7 @@
   "TestArgumentContainer.requiredClpEnum":   "String",
   "TestArgumentContainer.companionDictionary": null,
   "TestArgumentContainer.companionIndex": null,
-  "TestArgumentContainer.requiredFileList":   "Array[File]",
+  "TestArgumentContainer.requiredFileList":   "Array[String]",
   "TestArgumentContainer.requiredInputFilesFromArgCollection":   "Array[File]",
   "TestArgumentContainer.requiredStringInputFromArgCollection":   "String",
   "TestArgumentContainer.requiredStringList":   "Array[String]",
