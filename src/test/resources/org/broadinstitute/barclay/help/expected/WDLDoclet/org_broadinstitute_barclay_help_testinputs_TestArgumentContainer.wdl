@@ -105,11 +105,11 @@ workflow TestArgumentContainer {
         #Disk requirements for this workflow
         diskRequirements                                   = diskRequirements,
         #CPU requirements for this workflow
-        cpuRequirements                                    = diskRequirements,
+        cpuRequirements                                    = cpuRequirements,
         #Preemptible requirements for this workflow
-        preemptibleRequirements                            = diskRequirements,
+        preemptibleRequirements                            = preemptibleRequirements,
         #Boot disk size requirements for this workflow
-        bootdisksizegbRequirements                         = diskRequirements,
+        bootdisksizegbRequirements                         = bootdisksizegbRequirements,
 
 
         # Positional Arguments
