@@ -24,14 +24,21 @@ public class DocumentationGenerationIntegrationTest {
     private static final String indexFileName = "index";
     private static final String jsonFileExtension = ".json";
 
+    private static final List<String> DOC_TESTS_SOURCE_ARG_LIST = Arrays.asList(
+            "-sourcepath", "src/test/java",
+            "org.broadinstitute.barclay.help.testinputs",
+            "org.broadinstitute.barclay.argparser");
+
+    private static final List<String> WDL_TESTS_SOURCE_ARG_LIST = Arrays.asList(
+            "-sourcepath", "src/test/java",
+            "org.broadinstitute.barclay.help.wdltestinputs",
+            "org.broadinstitute.barclay.argparser");
+
     // common arguments not changed for tests
-    private static final List<String> COMMON_DOC_ARG_LIST = Arrays.asList(
+    private static final List<String> COMMON_ARG_LIST = Arrays.asList(
             "-build-timestamp", "2016/01/01 01:01:01",      // dummy, constant timestamp
             "-absolute-version", "11.1",                    // dummy version
             "-docletpath", "build/libs",
-            "-sourcepath", "src/test/java",
-            "org.broadinstitute.barclay.help.testinputs",
-            "org.broadinstitute.barclay.argparser",
             "-verbose",
             "-cp", System.getProperty("java.class.path")
     );
@@ -41,11 +48,17 @@ public class DocumentationGenerationIntegrationTest {
             "org_broadinstitute_barclay_help_testinputs_TestExtraDocs"
     );
 
-    private static List<String> docArgList(final Class<?> docletClass, final File templatesFolder, final File outputDir,
+    private static final List<String> getDocletTestArgs(final List<String> sourcePathArgs) {
+        final List<String> argList = new ArrayList<>(sourcePathArgs);
+        argList.addAll(COMMON_ARG_LIST);
+        return argList;
+    }
+
+    private static List<String> docArgList(final Class<?> docletClass, final List<String> docletArgs, final File templatesFolder, final File outputDir,
             final String indexFileExtension, final String outputFileExtension) {
 
         // set the common arguments
-        final List<String> docArgList = new ArrayList<>(COMMON_DOC_ARG_LIST);
+        final List<String> docArgList = new ArrayList<>(docletArgs);
 
         // set the templates
         if ( templatesFolder != null ) {
@@ -75,6 +88,7 @@ public class DocumentationGenerationIntegrationTest {
         return new Object[][] {
                 // default doclet and templates
                 {HelpDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST),
                         new File(inputResourcesDir + "helpTemplates/"),
                         new File(testResourcesDir + "help/expected/HelpDoclet"),
                         indexFileName,
@@ -88,6 +102,7 @@ public class DocumentationGenerationIntegrationTest {
                 },
                 // defaut doclet and templates using alternate index extension
                 {HelpDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST),
                         new File(inputResourcesDir + "helpTemplates/"),
                         new File(testResourcesDir + "help/expected/HelpDoclet"),
                         indexFileName,
@@ -101,6 +116,7 @@ public class DocumentationGenerationIntegrationTest {
                 },
                 // custom doclet and templates
                 {TestDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST),
                         new File(testResourcesDir + "help/templates/TestDoclet/"),
                         new File(testResourcesDir + "help/expected/TestDoclet"),
                         indexFileName,
@@ -114,6 +130,7 @@ public class DocumentationGenerationIntegrationTest {
                 },
                 // custom bash doclet and templates
                 {BashTabCompletionDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST),
                         new File(inputResourcesDir + "helpTemplates/"),
                         new File(testResourcesDir + "help/expected/BashTabCompletionDoclet"),
                         "bashTabCompletionDocletTestLaunch-completion",
@@ -147,6 +164,7 @@ public class DocumentationGenerationIntegrationTest {
 
                 // default doclet and templates from classpath
                 {HelpDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST),
                         null,
                         new File(testResourcesDir + "help/expected/HelpDoclet"),
                         indexFileName,
@@ -160,6 +178,7 @@ public class DocumentationGenerationIntegrationTest {
                 },
                 // default doclet and templates from classpath using alternate index extension
                 {HelpDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST),
                         null,
                         new File(testResourcesDir + "help/expected/HelpDoclet"),
                         indexFileName,
@@ -173,6 +192,7 @@ public class DocumentationGenerationIntegrationTest {
                 },
                 // custom bash doclet pulling templates from classpath
                 {BashTabCompletionDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST),
                         null,
                         new File(testResourcesDir + "help/expected/BashTabCompletionDoclet"),
                         "bashTabCompletionDocletTestLaunch-completion",
@@ -205,6 +225,7 @@ public class DocumentationGenerationIntegrationTest {
                 },
                 // custom bash doclet pulling templates from classpath, Mostly defaults
                 {BashTabCompletionDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST),
                         null,
                         new File(testResourcesDir + "help/expected/BashTabCompletionDoclet"),
                         "bashTabCompletionDocletTestLaunchWithDefaults-completion",
@@ -219,8 +240,9 @@ public class DocumentationGenerationIntegrationTest {
                         true,  // onlyTestIndex
                         EXPECTED_OUTPUT_FILE_NAME_PREFIXES
                 },
-                // WDL Gen
+                // WDL Gen using TestArgumentContainer
                 { WDLDoclet.class,
+                        getDocletTestArgs(DOC_TESTS_SOURCE_ARG_LIST), // use the doc args to test the TestArgumentContainer
                         new File(inputResourcesDir + "helpTemplates/"),
                         new File(testResourcesDir + "help/expected/WDLDoclet"),
                         indexFileName,
@@ -232,13 +254,29 @@ public class DocumentationGenerationIntegrationTest {
                         false,    // onlyTestIndex
                           // the WDL generator doesn't resolve "extraDocs", so there is only the test container
                         Collections.singletonList("org_broadinstitute_barclay_help_testinputs_TestArgumentContainer")
-                }
+                },
+                // WDL Gen test using TestWDLTool
+                { WDLDoclet.class,
+                        getDocletTestArgs(WDL_TESTS_SOURCE_ARG_LIST), // use the WDL test source args
+                        new File(inputResourcesDir + "helpTemplates/"),
+                        new File(testResourcesDir + "help/expected/WDLSpecificTest"),
+                        indexFileName,
+                        "html", // testIndexFileExtension
+                        "wdl", // testOutputFileExtension
+                        "html", // requestedIndexFileExtension
+                        "wdl", // requestedOutputFileExtension
+                        new String[] {}, // customDocletArgs
+                        false,    // onlyTestIndex
+                        // the WDL generator doesn't resolve "extraDocs", so there is only the test container
+                        Collections.singletonList("org_broadinstitute_barclay_help_wdltestinputs_TestWDLTool")
+                },
         };
     }
 
     @Test(dataProvider = "getDocGenTestParams")
     public void testDocGenRoundTrip(
             final Class<?> docletClass,
+            final List<String> docletArgs,
             final File inputTemplatesFolder,
             final File expectedDir,
             final String indexFileBaseName,
@@ -256,7 +294,7 @@ public class DocumentationGenerationIntegrationTest {
         outputDir.deleteOnExit();
 
         // pull all our arguments together:
-        List<String> javadocArgs = docArgList(docletClass, inputTemplatesFolder, outputDir, requestedIndexFileExtension, requestedOutputFileExtension);
+        List<String> javadocArgs = docArgList(docletClass, docletArgs, inputTemplatesFolder, outputDir, requestedIndexFileExtension, requestedOutputFileExtension);
         for (int i = 0 ; i < customDocletArgs.length; ++i) {
             javadocArgs.add(customDocletArgs[i]);
         }

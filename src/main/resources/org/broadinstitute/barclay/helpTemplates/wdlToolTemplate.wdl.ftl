@@ -213,7 +213,7 @@ task ${name} {
         <#list argsToUse as arg>
             <#if heading?starts_with("Positional")>
     ${arg.wdlinputtype} ${positionalArgs}
-                <#if companionResources?? && companionResources[arg.name]??>
+                <#if companionResources?? && companionResources[positionalArgs]??>
                     <#list companionResources[positionalArgs] as companion>
     ${arg.wdlinputtype} Positional_${companion.name?substring(2)}
                     </#list>

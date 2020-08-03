@@ -1,6 +1,5 @@
 package org.broadinstitute.barclay.help;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import org.broadinstitute.barclay.argparser.*;
@@ -115,11 +114,18 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
                 (Map<String, List<Map<String, Object>>>) currentWorkUnit.getRootMap().get("arguments");
         final List<Map<String, Object>> allArgsMap = argMap.get("all");
         // <argname, List<companions>>
-        final Map<String, List<Map<String, Object>>> argCompanionResourceArgMaps = new HashMap<>();
+        @SuppressWarnings("unchecked")
+        final Map<String, List<Map<String, Object>>> argCompanionResourceArgMaps =
+                (Map<String, List<Map<String, Object>>>) currentWorkUnit.getRootMap().getOrDefault(COMPANION_RESOURCES, new HashMap<>());
 
         //TODO: should we do this in processNamedArgument instead, so we can properly distinguish
         allArgsMap.forEach(m -> {
-            final String argName = (String) m.get("name");
+            final String rawArgName = (String) m.get("name");
+            // we need to a do a slight namespace translation here, as the name he name used by the doc system
+            // for positional args is made for user presentation in doc, but for WDL it has to be wdl-compatible
+            final String argName = rawArgName.equals(DefaultDocWorkUnitHandler.NAME_FOR_POSITIONAL_ARGS) ?
+                    POSITIONAL_ARGS :
+                    rawArgName;
             final List<Map<String, Object>> argCompanions = new ArrayList<>();
             if (companionFiles.containsKey(argName)) {
                 for (final String companion : companionFiles.get(argName)) {
@@ -183,6 +189,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         // Store the actual (unmodified) arg name that the app will recognize, for use in the task command block.
         final String actualArgName = (String) argBindings.get("name");
         argBindings.put("actualArgName", actualArgName);
+
         // Now generate a WDL-friendly name (if necessary "input" and "output" are reserved words in WDL and
         // can't be used for arg names; also WDL doesn't accept embedded "-" for variable names, so use a non-kebab
         // name with an underscore) for use as the argument name in the rest of the WDL source.
@@ -191,7 +198,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
 
         // finally, keep track of the outputs
         if (workflowResource != null) {
-            updateWorkflowOutputs(workflowResource, wdlName, wdlType, argDef.isOptional());
+            propagateCompanionsAndOutputs(workflowResource, wdlName, wdlType, argDef.isOptional());
         }
         return argCategory;
     }
@@ -218,7 +225,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
 
             // finally, keep track of the outputs
             if (workflowResource != null) {
-                updateWorkflowOutputs(workflowResource, POSITIONAL_ARGS, wdlType, true);
+                propagateCompanionsAndOutputs(workflowResource, POSITIONAL_ARGS, wdlType, true);
             }
         }
     }
@@ -241,14 +248,13 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     }
 
     /**
-     * Update the list of outputs workflow resources and update the corresponding companion files.
+     * Update the list of workflow output resources, and update companion files.
      *
      * @param workflowResource the {@link WorkflowResource} to use when updating runtime outputs, may not be null
      * @param wdlName the wdlname for this workflow resource
      * @param wdlType the wdltype for this workflow resource
      */
-    //TODO: rename this since it also propagates companionFiles
-    protected void updateWorkflowOutputs(
+    protected void propagateCompanionsAndOutputs(
             final WorkflowResource workflowResource,
             final String wdlName,
             final String wdlType,
@@ -396,16 +402,11 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
             final Class<?> argumentClass,
             final String docType, final String sourceContext) {
         final String convertedWDLType;
-        //final Pair<String, String> rawTypeConversionPair = transformToWDLType(argumentClass);
-        // finally, if this type is for an arg that is a WorkflowResource that is a workflow output, and its type
-        // is file, we need to use a different type (String) as the input type for this arg to prevent the workflow
-        // manager from attempting to localize the (non-existent) output file when localizing inputs
-//        final Pair<String, String> typeConversionPair =
-//                new ImmutablePair<>(
-//                        rawTypeConversionPair.getKey(),
-//                        transformWorkflowResourceOutputTypeToInputType(workflowResource, rawTypeConversionPair.getValue())
-//                );
         final Pair<String, String> typeConversionPair = transformToWDLType(argumentClass);
+
+        // If this type is for an arg that is a WorkflowResource that is a workflow output, and its type
+        // is file, we need to use String as the input type for this arg to prevent the workflow
+        // manager from attempting to localize the (non-existent) output file when localizing inputs
         if (typeConversionPair != null) {
             convertedWDLType = docType.replace(
                     typeConversionPair.getKey(),

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class DefaultDocWorkUnitHandler extends DocWorkUnitHandler {
     final protected static Logger logger = LogManager.getLogger(DefaultDocWorkUnitHandler.class);
 
-    private static final String NAME_FOR_POSITIONAL_ARGS = "[NA - Positional]";
+    public static final String NAME_FOR_POSITIONAL_ARGS = "[NA - Positional]";
     private static final String DEFAULT_FREEMARKER_TEMPLATE_NAME = "generic.html.ftl";
 
     /**
