@@ -320,5 +320,14 @@ task TestWDLTool {
     Array[File]? TestWDLTool_optionalListFileOutputDictionary = "${optionalListFileOutputDictionary}"
     Array[File]? TestWDLTool_optionalListFileOutputIndex = "${optionalListFileOutputIndex}"
   }
- }
+
+  parameter_meta {
+     positionalArgs: { localization_optional: true }
+     posDictionary: { localization_optional: true }
+     posIndex: { localization_optional: true }
+     requiredScalarFileInput: { localization_optional: true }
+     requiredScalarFileInputDictionary: { localization_optional: true }
+     requiredScalarFileInputIndex: { localization_optional: true }
+  }
+}
 

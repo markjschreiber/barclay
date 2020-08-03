@@ -34,4 +34,12 @@ public @interface WorkflowInput {
      * the companion files.
      */
     String[] optionalCompanions() default {};
+
+    /**
+     * Return a boolean specifying whether this input should have the "localization optional" attribute set.
+     * Defaults to false. Setting this to false will always result in localization of the input. A value of
+     * true should only be used for input arguments on tools that can handle inputs on non-local/remote file
+     * systems. This value is propagated to this input's companion files.
+     */
+    boolean localizationOptional() default false;
 }

@@ -228,5 +228,5 @@ task TestArgumentContainer {
     Array[File] TestArgumentContainer_companionDictionary = "${companionDictionary}"
     Array[File] TestArgumentContainer_companionIndex = "${companionIndex}"
   }
- }
+}
 

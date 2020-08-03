@@ -22,7 +22,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
      * the name used in the freemarker template as an argument placeholder for positional args; this constant
      * must be kept in sync with the corresponding one used in the template
      */
-    public static final String POSITIONAL_ARGS = "positionalArgs";
+    public static final String POSITIONAL_ARGS = CommandLineArgumentParser.LONG_OPTION_PREFIX + "positionalArgs";
 
     // keep track of tool outputs (Map<argName, argType>)
     private Map<String, String> runtimeOutputs = new LinkedHashMap<>();
@@ -38,6 +38,9 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     // keep track of optional companion files (Map<argName, List<Map<companionName, attributes>>>) for
     // arguments for this work unit
     final Map<String, List<Map<String, String>>> optionalCompanionFiles = new HashMap<>();
+
+    // Set of inputs that should appear in the param_meta section with localization optional set to true
+    final Set<String> localizationOptional = new LinkedHashSet<>();
 
     /**
      * Create the WDL work unit handler for a single work unit.
@@ -61,10 +64,12 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         super.addCommandLineArgumentBindings(currentWorkUnit, clp);
 
         // add the properties required by the WDL template for workflow outputs, required outputs and companions
+        // and localization optional
         currentWorkUnit.getRootMap().put(TemplateProperties.WDL_RUNTIME_OUTPUTS, runtimeOutputs);
         currentWorkUnit.getRootMap().put(TemplateProperties.WDL_REQUIRED_OUTPUTS, requiredOutputs);
         currentWorkUnit.getRootMap().put(TemplateProperties.WDL_REQUIRED_COMPANIONS, requiredCompanionFiles);
         currentWorkUnit.getRootMap().put(TemplateProperties.WDL_OPTIONAL_COMPANIONS, optionalCompanionFiles);
+        currentWorkUnit.getRootMap().put(TemplateProperties.WDL_LOCALIZATION_OPTIONAL, localizationOptional);
     }
 
     /**
@@ -172,6 +177,9 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         final List<Map<String, String>> optionalCompanions = new ArrayList<>();
 
         if (workflowInput != null) {
+            if (workflowInput.localizationOptional() == true) {
+                localizationOptional.add(wdlName);
+            }
             for (final String companion : workflowInput.requiredCompanions()) {
                 final Map<String, String> companionMap = createCompanionMapEntry(wdlName, companion);
                 if (resourceIsOptional) {
@@ -182,11 +190,17 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
                 } else {
                     requiredCompanions.add(companionMap);
                 }
+                if (workflowInput.localizationOptional() == true) {
+                    localizationOptional.add(companionMap.get(TemplateProperties.ARGUMENT_NAME));
+                }
             }
 
             for (final String companion : workflowInput.optionalCompanions()) {
                 final Map<String, String> companionMap = createCompanionMapEntry(wdlName, companion);
                 optionalCompanions.add(companionMap);
+                if (workflowInput.localizationOptional() == true) {
+                    localizationOptional.add(companionMap.get(TemplateProperties.ARGUMENT_NAME));
+                }
             }
         }
 
@@ -222,11 +236,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         final String companionArgOption = CommandLineArgumentParser.LONG_OPTION_PREFIX + companionName;
         companionMap.put(TemplateProperties.ARGUMENT_NAME, companionArgOption);
         companionMap.put(TemplateProperties.ARGUMENT_SUMMARY,
-                String.format(
-                        "Companion resource for %s",
-                        sourceName.equals(POSITIONAL_ARGS) ?
-                                POSITIONAL_ARGS :
-                                sourceName.substring(2)));
+                String.format("Companion resource for %s", sourceName.substring(2)));
         return companionMap;
     }
 

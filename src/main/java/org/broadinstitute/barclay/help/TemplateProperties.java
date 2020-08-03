@@ -52,6 +52,7 @@ public class TemplateProperties {
      * preemptible property
      */
     public static final String WDL_WORKFLOW_PREEMPTIBLE = "preemptibleRequirements";
+
     /**
      * name of the top level freemarker map entry for runtime outputs
      */
@@ -68,5 +69,10 @@ public class TemplateProperties {
      * name of the top level freemarker map entry for optional companion resources
      */
     public static final String WDL_OPTIONAL_COMPANIONS = "optionalCompanions";
+
+    /**
+     * localization optional inputs
+     */
+    public static final String WDL_LOCALIZATION_OPTIONAL = "localizationOptional";
 
 }

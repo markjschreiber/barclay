@@ -36,7 +36,7 @@ public class TestWDLTool {
     public static final String GROUP_NAME = "WDL feature group name";
 
     @PositionalArguments(doc = "Positional args doc")
-    @WorkflowInput(requiredCompanions ={"posDictionary", "posIndex"})
+    @WorkflowInput(requiredCompanions ={"posDictionary", "posIndex"}, localizationOptional = true)
     public List<File> positionalListFileInput;
 
     // required Files
@@ -44,7 +44,7 @@ public class TestWDLTool {
             shortName = "requiredScalarFileInput",
             doc = "requiredScalarFileInput doc",
             optional = false)
-    @WorkflowInput(requiredCompanions ={"requiredScalarFileInputDictionary", "requiredScalarFileInputIndex"})
+    @WorkflowInput(requiredCompanions ={"requiredScalarFileInputDictionary", "requiredScalarFileInputIndex"}, localizationOptional = true)
     public File requiredScalarFileInput;
 
     @Argument(fullName = "requiredListFileInput",
