@@ -28,7 +28,6 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     private Map<String, String> requiredOutputs = new LinkedHashMap<>();
 
     // keep track of companion files (Map<argName, List<companionNames>) for a single argument
-    //TODO: need (Map<argName, List<Map<String, String>>>) where the inner map has keys "name", "type" and "required"
     private Map<String, List<String>> companionFiles = new HashMap<>();
 
     /**
@@ -122,9 +121,9 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         //TODO: should we do this in processNamedArgument instead, so we can properly distinguish
         allArgsMap.forEach(m -> {
             final String rawArgName = (String) m.get("name");
-            // we need to a do a slight namespace translation here, as the name he name used by the doc system
+            // we need to a do a slight namespace translation here, as the name used by the doc system
             // for positional args is made for user presentation in doc, but for WDL it has to be wdl-compatible
-            final String argName = rawArgName.equals(DefaultDocWorkUnitHandler.NAME_FOR_POSITIONAL_ARGS) ?
+            final String argName = rawArgName.equals(NAME_FOR_POSITIONAL_ARGS) ?
                     POSITIONAL_ARGS :
                     rawArgName;
             final List<Map<String, Object>> argCompanions = new ArrayList<>();
@@ -134,8 +133,12 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
                     // and requiredness
                     final Map<String, Object> companionMap = new HashMap<>();
                     companionMap.put("name", companion);
-                    companionMap.put("synonyms", "");
-                    companionMap.put("summary", "Companion resource for: " + m.get("summary"));
+                    companionMap.put("summary",
+                            String.format(
+                                    "Companion resource for %s",
+                                    argName.equals(POSITIONAL_ARGS) ?
+                                            POSITIONAL_ARGS :
+                                            argName.substring(2)));
                     argCompanions.add(companionMap);
                 }
                 argCompanionResourceArgMaps.put(argName, argCompanions);
