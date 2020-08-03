@@ -18,8 +18,6 @@ import java.util.stream.Collectors;
 public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     private static final String GATK_FREEMARKER_TEMPLATE_NAME = "wdlToolTemplate.wdl.ftl";
 
-    private static final String LONG_OPTION_PREFIX = "--";
-
     /**
      * the name used in the freemarker template as an argument placeholder for positional args; this constant
      * must be kept in sync with the corresponding one used in the template
@@ -99,7 +97,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         // name with an underscore) for use as the argument name in the rest of the WDL source.
         final String actualArgName = (String) argBindings.get(TemplateProperties.ARGUMENT_NAME);
         argBindings.put(TemplateProperties.WDL_ARGUMENT_ACTUAL_NAME, actualArgName);
-        String wdlName = LONG_OPTION_PREFIX + transformJavaNameToWDLName(actualArgName.substring(2));
+        String wdlName = CommandLineArgumentParser.LONG_OPTION_PREFIX + transformJavaNameToWDLName(actualArgName.substring(2));
         argBindings.put(TemplateProperties.ARGUMENT_NAME, wdlName);
 
         propagateArgument(wdlName, argDef, argBindings);
@@ -221,7 +219,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
 
     protected Map<String, String> createCompanionMapEntry(final String sourceName, final String companionName) {
         final Map<String, String> companionMap = new HashMap<>();
-        final String companionArgOption = LONG_OPTION_PREFIX + companionName;
+        final String companionArgOption = CommandLineArgumentParser.LONG_OPTION_PREFIX + companionName;
         companionMap.put(TemplateProperties.ARGUMENT_NAME, companionArgOption);
         companionMap.put(TemplateProperties.ARGUMENT_SUMMARY,
                 String.format(
