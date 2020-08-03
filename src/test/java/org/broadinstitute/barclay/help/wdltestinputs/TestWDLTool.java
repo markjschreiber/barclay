@@ -13,15 +13,16 @@ import java.io.File;
 import java.util.List;
 
 /**
- * NOTE: this file needs to live in a separate package from the doc tests, otherwise all of the docs tests
- * will pick it up as a command line program, which will change the outputs.
- *
  * CommandLineProgram test tool for testing WDL generation. Contains various combinations of
  * commandline argument and workflow input/outputs with companion resources:
  *
  *  scalar/array
  *  file/non-file
  *  required/optional
+ *
+ * NOTE: this file needs to live in a separate package from the doc tests, otherwise all of the docs tests
+ * will pick it up as a command line program, which will change the outputs.
+ *
  */
 @CommandLineProgramProperties(
         summary = TestWDLTool.SUMMARY,

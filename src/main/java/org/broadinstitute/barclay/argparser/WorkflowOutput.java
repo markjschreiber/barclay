@@ -3,7 +3,7 @@ package org.broadinstitute.barclay.argparser;
 import java.lang.annotation.*;
 
 /**
- * Used to annotate @Arguments of a CommandLineProgram that are a workflow output. Used in the generation of WDL.
+ * Used to annotate @Arguments of a CommandLineProgram that are a workflow output, used by auto WDL generation.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
@@ -21,7 +21,7 @@ public @interface WorkflowOutput {
      * is required, otherwise they will be optional), allowing callers to optionally provide name values for
      * the companion files.
      *
-     * The additional arguments will be included in the workflow output section of the associated WDL.
+     * The additional companion arguments will be included in the workflow output section of the associated WDL.
      */
     String[] requiredCompanions() default {};
 
@@ -36,7 +36,7 @@ public @interface WorkflowOutput {
      * additional optional parameters with these names, allowing callers to optionally provide name values for
      * the companion files.
      *
-     * The additional arguments will be included in the workflow output section of the associated WDL.
+     * The additional companion arguments will be included in the workflow output section of the associated WDL.
      */
     String[] optionalCompanions() default {};
 }

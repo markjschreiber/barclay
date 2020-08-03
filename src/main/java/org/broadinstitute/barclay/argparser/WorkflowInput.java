@@ -3,7 +3,7 @@ package org.broadinstitute.barclay.argparser;
 import java.lang.annotation.*;
 
 /**
- * Used to annotate @Arguments of a CommandLineProgram that are a workflow input. Used in the generation of WDL.
+ * Used to annotate @Arguments of a CommandLineProgram that are a workflow input, used by auto WDL generation.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
@@ -37,9 +37,8 @@ public @interface WorkflowInput {
 
     /**
      * Return a boolean specifying whether this input should have the "localization optional" attribute set.
-     * Defaults to false. Setting this to false will always result in localization of the input. A value of
-     * true should only be used for input arguments on tools that can handle inputs on non-local/remote file
-     * systems. This value is propagated to this input's companion files.
+     * Defaults to false. A value of true should only be used for input arguments on tools that can handle
+     * inputs on non-local/remote file systems. This attribute is propagated to this input's companion files.
      */
     boolean localizationOptional() default false;
 }
