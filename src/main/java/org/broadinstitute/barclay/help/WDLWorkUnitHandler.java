@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The WDL work unit handler. Its main task is to convert the types for all arguments for a given work
@@ -176,13 +177,14 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         // type chosen by the doc system) with an appropriate wdl type (don't pass WorkflowResource
         // in this call since we want this returned type to be the raw type, not the transformed "input"
         // type for output args)
-        final String wdlType = getWDLTypeForArgument(argDef, null, (String) argBindings.get("type"));
+        final String preProcessedType = (String) argBindings.get("type");
+        final String wdlType = getWDLTypeForArgument(argDef, null, preProcessedType);
 
         // Now generate the transformed "input" type for args that are output workflow resources and have a WDL type
         // of "File". These need to use String as the *input* type even though they actually represent a File type,
         // to prevent the workflow manager from attempting to localize them on input, when they don't exist yet. So
         // create a separate property in the property map for use by the template in input definitions.
-        final String wdlInputType = getWDLTypeForArgument(argDef, workflowResource, (String) argBindings.get("type"));
+        final String wdlInputType = getWDLTypeForArgument(argDef, workflowResource, preProcessedType);
         argBindings.put("type", wdlType);
         argBindings.put("wdlinputtype", wdlInputType);
 
@@ -196,9 +198,11 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         String wdlName = LONG_OPTION_PREFIX + transformJavaNameToWDLName(actualArgName.substring(2));
         argBindings.put("name", wdlName);
 
-        // finally, keep track of the outputs
+        argBindings.put("defaultValue", defaultValueAsJSON(wdlType, (String) argBindings.get("defaultValue")));
+
+        // finally, keep track of the outputs and companions
         if (workflowResource != null) {
-            propagateCompanionsAndOutputs(workflowResource, wdlName, wdlType, argDef.isOptional());
+            propagateWorkflowAttributes(workflowResource, wdlName, wdlType, argDef.isOptional());
         }
         return argCategory;
     }
@@ -211,21 +215,25 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
 
         final PositionalArgumentDefinition argDef = clp.getPositionalArgumentDefinition();
         if (argDef != null) {
+            final Map<String, Object> positionalArgs = argBindings.get("positional").get(0);
+            final String preProcessedType = (String) positionalArgs.get("type");
             final WorkflowResource workflowResource = getWorkflowResource(argDef);
 
             // replace the java type of the argument with the appropriate wdl type
-            final String wdlType = getWDLTypeForArgument(argDef, null, (String) argBindings.get("positional").get(0).get("type"));
+            final String wdlType = getWDLTypeForArgument(argDef, null, preProcessedType);
 
             // for args that are output workflow resources and have a WDL type of File, we need to use a String as
             // the *input* type to prevent the workflow manager from attempting to localize them on input, so
             // create a separate property in the property map for use by the template in input definitions
-            final String wdlInputType = getWDLTypeForArgument(argDef, workflowResource, (String) argBindings.get("positional").get(0).get("type"));
-            argBindings.get("positional").get(0).put("type", wdlType);
-            argBindings.get("positional").get(0).put("wdlinputtype", wdlInputType);
+            final String wdlInputType = getWDLTypeForArgument(argDef, workflowResource, preProcessedType);
+            positionalArgs.put("type", wdlType);
+            positionalArgs.put("wdlinputtype", wdlInputType);
 
-            // finally, keep track of the outputs
+            positionalArgs.put("defaultValue", defaultValueAsJSON(wdlType, (String) positionalArgs.get("defaultValue")));
+
+            // finally, keep track of the outputs and companions
             if (workflowResource != null) {
-                propagateCompanionsAndOutputs(workflowResource, POSITIONAL_ARGS, wdlType, true);
+                propagateWorkflowAttributes(workflowResource, POSITIONAL_ARGS, wdlType, true);
             }
         }
     }
@@ -254,7 +262,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
      * @param wdlName the wdlname for this workflow resource
      * @param wdlType the wdltype for this workflow resource
      */
-    protected void propagateCompanionsAndOutputs(
+    protected void propagateWorkflowAttributes(
             final WorkflowResource workflowResource,
             final String wdlName,
             final String wdlType,
@@ -453,6 +461,48 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
      */
     protected Pair<String, String> transformToWDLType(final Class<?> argumentClass) {
         return WDLTransforms.transformToWDLType(argumentClass);
+    }
+
+    /**
+     * Return the default value suitably formatted as a JSON value. This primarily involves quoting strings and enum
+     * values, including arrays thereof.
+     *
+     * @param wdlType
+     * @param defaultWDLValue
+     * @return
+     */
+    protected String defaultValueAsJSON(
+            final String wdlType,
+            final String defaultWDLValue) {
+
+        if (defaultWDLValue.equals("null") || defaultWDLValue.equals("\"\"") || defaultWDLValue.equals("[]")) {
+            return defaultWDLValue;
+        } else if (defaultWDLValue.startsWith("[") && wdlType.equals("Array[String]")) {
+            // the array is already populated with a value (since we didn't execute the "[]" branch above),
+            // so quote the individual values
+            return quoteWDLArrayValues(defaultWDLValue);
+        } else if (wdlType.equals("String")) {
+            return "\"" + defaultWDLValue + "\"";
+        } else if (wdlType.equals("Float")) {
+            if (defaultWDLValue.equalsIgnoreCase("Infinity") || defaultWDLValue.equalsIgnoreCase("Nan")) {
+                // JSON does not recognize "Infinity" or "Nan" as valid float values (!), so we
+                // need to treat them as String values
+                return "\"" + defaultWDLValue + "\"";
+            }
+        }
+        return defaultWDLValue;
+    }
+
+    /**
+     * Parse the wdlArrayString and replace the elements with quoted elements
+     * @param wdlArray
+     * @return a wdlArrayString with each element quoted
+     */
+    protected String quoteWDLArrayValues(final String wdlArray) {
+        final String wdlValues = wdlArray.substring(1, wdlArray.length() - 1);
+        final String[] wdlValueArray = wdlValues.split(",");
+        return String.format("[%s]",
+                Arrays.stream(wdlValueArray).map(s -> String.format("\"%s\"", s.trim())).collect(Collectors.joining(",")));
     }
 
     /**
