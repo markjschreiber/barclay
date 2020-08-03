@@ -3,7 +3,7 @@ package org.broadinstitute.barclay.help;
 import org.apache.commons.lang3.tuple.Pair;
 
 import org.broadinstitute.barclay.argparser.*;
-import org.broadinstitute.barclay.argparser.RuntimeProperties;
+import org.broadinstitute.barclay.argparser.WorkflowProperties;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -26,28 +26,28 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
      * Note that the property names used in this map will appear as workflow and task argument names in the
      * generated WDL, and should therefore not collide with any WDL reserved words.
      */
-    public static final String RUNTIME_PROPERTIES = "runtimeProperties";
+    public static final String WORKFLOW_PROPERTIES = "workflowProperties";
     /**
-     * runtime memory property (stored in "runtimeProperties", used to initialize arg value in JSON)
+     * runtime memory property (stored in "workflowProperties", used to initialize arg value in JSON)
      */
-    public static final String RUNTIME_PROPERTY_MEMORY = "memoryRequirements";
+    public static final String WORKFLOW_PROPERTY_MEMORY = "memoryRequirements";
     /**
-     * runtime disks property (stored in "runtimeProperties", used to initialize arg value in JSON)
+     * runtime disks property (stored in "workflowProperties", used to initialize arg value in JSON)
      */
-    public static final String RUNTIME_PROPERTY_DISKS = "diskRequirements";
+    public static final String WORKFLOW_PROPERTY_DISKS = "diskRequirements";
     /**
      * cpu property
      */
-    public static final String RUNTIME_PROPERTY_CPU = "cpuRequirements";
+    public static final String WORKFLOW_PROPERTY_CPU = "cpuRequirements";
     /**
      * bootDiskSizeGb property
      */
-    public static final String RUNTIME_PROPERTY_BOOT_DISK_SIZE_GB = "bootdisksizegbRequirements";
+    public static final String WORKFLOW_PROPERTY_BOOT_DISK_SIZE_GB = "bootdisksizegbRequirements";
 
     /**
      * preemptible property
      */
-    public static final String RUNTIME_PROPERTY_PREEMPTIBLE = "preemptibleRequirements";
+    public static final String WORKFLOW_PROPERTY_PREEMPTIBLE = "preemptibleRequirements";
 
     /**
      * name of the top level freemarker map entry for runtime outputs
@@ -521,15 +521,15 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     protected void addCustomBindings(final DocWorkUnit currentWorkUnit) {
         super.addCustomBindings(currentWorkUnit);
 
-        final RuntimeProperties rtProperties = currentWorkUnit.getClazz().getAnnotation(RuntimeProperties.class);
+        final WorkflowProperties rtProperties = currentWorkUnit.getClazz().getAnnotation(WorkflowProperties.class);
         if (rtProperties != null) {
-            final Map<String, String> runtimePropertiesMap = new HashMap<>();
-            runtimePropertiesMap.put(RUNTIME_PROPERTY_MEMORY, rtProperties.memory());
-            runtimePropertiesMap.put(RUNTIME_PROPERTY_DISKS, rtProperties.disks());
-            runtimePropertiesMap.put(RUNTIME_PROPERTY_CPU, Integer.toString(rtProperties.cpu()));
-            runtimePropertiesMap.put(RUNTIME_PROPERTY_PREEMPTIBLE, Integer.toString(rtProperties.preEmptible()));
-            runtimePropertiesMap.put(RUNTIME_PROPERTY_BOOT_DISK_SIZE_GB, Integer.toString(rtProperties.bootDiskSizeGb()));
-            currentWorkUnit.setProperty(RUNTIME_PROPERTIES, runtimePropertiesMap);
+            final Map<String, String> workflowPropertiesMap = new HashMap<>();
+            workflowPropertiesMap.put(WORKFLOW_PROPERTY_MEMORY, rtProperties.memory());
+            workflowPropertiesMap.put(WORKFLOW_PROPERTY_DISKS, rtProperties.disks());
+            workflowPropertiesMap.put(WORKFLOW_PROPERTY_CPU, Integer.toString(rtProperties.cpu()));
+            workflowPropertiesMap.put(WORKFLOW_PROPERTY_PREEMPTIBLE, Integer.toString(rtProperties.preEmptible()));
+            workflowPropertiesMap.put(WORKFLOW_PROPERTY_BOOT_DISK_SIZE_GB, Integer.toString(rtProperties.bootDiskSizeGb()));
+            currentWorkUnit.setProperty(WORKFLOW_PROPERTIES, workflowPropertiesMap);
         }
     }
 

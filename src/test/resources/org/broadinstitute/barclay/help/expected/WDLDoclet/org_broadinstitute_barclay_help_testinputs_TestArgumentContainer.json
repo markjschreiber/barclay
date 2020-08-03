@@ -3,7 +3,7 @@
   "TestArgumentContainer.appLocation": "String",
   "TestArgumentContainer.memoryRequirements": "3G",
   "TestArgumentContainer.diskRequirements": "local-disk 40 HDD",
-  "TestArgumentContainer.cpuRequirements": "1",
+  "TestArgumentContainer.cpuRequirements": "2",
   "TestArgumentContainer.preemptibleRequirements": "3",
   "TestArgumentContainer.bootdisksizegbRequirements": "15",
 

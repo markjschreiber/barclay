@@ -3,7 +3,7 @@ package org.broadinstitute.barclay.help.wdltestinputs;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.argparser.PositionalArguments;
-import org.broadinstitute.barclay.argparser.RuntimeProperties;
+import org.broadinstitute.barclay.argparser.WorkflowProperties;
 import org.broadinstitute.barclay.argparser.TestProgramGroup;
 import org.broadinstitute.barclay.argparser.WorkflowInput;
 import org.broadinstitute.barclay.argparser.WorkflowOutput;
@@ -27,7 +27,7 @@ import java.util.List;
         summary = TestWDLTool.SUMMARY,
         oneLineSummary = TestWDLTool.ONE_LINE_SUMMARY,
         programGroup = TestProgramGroup.class)
-@RuntimeProperties(memory ="8G")
+@WorkflowProperties(memory ="8G")
 @DocumentedFeature(groupName = TestWDLTool.GROUP_NAME)
 public class TestWDLTool {
 
