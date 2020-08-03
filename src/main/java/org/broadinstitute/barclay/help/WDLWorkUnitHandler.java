@@ -22,7 +22,12 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     // keep track of tool outputs (Map<argName, argType>)
     private Map<String, String> runtimeOutputs = new HashMap<>();
 
+    // requiredOutputs is a subset of runtimeOutputs; the data is somewhat redundant with runtimeOutputs but
+    // simplifies access from within the template
+    private Map<String, String> requiredOutputs = new HashMap<>();
+
     // keep track of companion files (Map<argName, List<companionNames>) for a single argument
+    //TODO: need (Map<argName, List<Map<String, String>>>) where the inner map has keys "name", "type" and "required"
     private Map<String, List<String>> companionFiles = new HashMap<>();
 
     /**
@@ -53,11 +58,17 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
      * preemptible property
      */
     public static final String RUNTIME_PROPERTY_PREEMPTIBLE = "preemptibleRequirements";
+
     /**
      * name of the top level freemarker map entry for runtime outputs
      */
-
     public static final String RUNTIME_OUTPUTS = "runtimeOutputs";
+
+    /**
+     * name of the top level freemarker map entry for required runtime outputs
+     */
+    public static final String REQUIRED_OUTPUTS = "requiredOutputs";
+
     /**
      * name of the top level freemarker map entry for companion resources
      */
@@ -92,20 +103,27 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         currentWorkUnit.getRootMap().put(RUNTIME_OUTPUTS, runtimeOutputsForFreemarker);
         runtimeOutputs.clear();
 
+        final Map<String, String> requiredOutputsForFreemarker = new HashMap<>();
+        requiredOutputsForFreemarker.putAll(requiredOutputs);
+        currentWorkUnit.getRootMap().put(REQUIRED_OUTPUTS, requiredOutputs);
+        requiredOutputs.clear();
+
         // synthesize arguments for the companion resources
         @SuppressWarnings("unchecked")
         final Map<String, List<Map<String, Object>>> argMap =
                 (Map<String, List<Map<String, Object>>>) currentWorkUnit.getRootMap().get("arguments");
         final List<Map<String, Object>> allArgsMap = argMap.get("all");
-        // <arg, List<companions>>
+        // <argname, List<companions>>
         final Map<String, List<Map<String, Object>>> argCompanionResourceArgMaps = new HashMap<>();
+
         allArgsMap.forEach(m -> {
             final String argName = (String) m.get("name");
             final Map<String, Object> argPropertiesMap = m;
             final List<Map<String, Object>> argCompanions = new ArrayList<>();
             if (companionFiles.containsKey(argName)) {
                 for (final String companion : companionFiles.get(argName)) {
-                    // the companion files retain all properties of the original arg, except for name and synonyms
+                    // the companion files retain all properties of the original arg, except for name, synonyms,
+                    // and requiredness
                     final Map<String, Object> companionMap = new HashMap<>();
                     companionMap.putAll(argPropertiesMap);
                     companionMap.put("name", companion);
@@ -173,7 +191,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
 
         // finally, keep track of the outputs
         if (workflowResource != null) {
-            updateWorkflowOutputs(workflowResource, wdlName, wdlType);
+            updateWorkflowOutputs(workflowResource, wdlName, wdlType, argDef.isOptional());
         }
         return argCategory;
     }
@@ -200,7 +218,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
 
             // finally, keep track of the outputs
             if (workflowResource != null) {
-                updateWorkflowOutputs(workflowResource, POSITIONAL_ARGS, wdlType);
+                updateWorkflowOutputs(workflowResource, POSITIONAL_ARGS, wdlType, true);
             }
         }
     }
@@ -232,10 +250,15 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     protected void updateWorkflowOutputs(
             final WorkflowResource workflowResource,
             final String wdlName,
-            final String wdlType) {
+            final String wdlType,
+            final boolean resourceIsOptional) {
         if (workflowResource.output()) {
             runtimeOutputs.put(wdlName, wdlType);
+            if (!resourceIsOptional) {
+                requiredOutputs.put(wdlName, wdlType);
+            }
         }
+        // TODO: this should include the companions as outputs
         for (final String companion : workflowResource.companionResources()) {
             final String companionArgOption = LONG_OPTION_PREFIX + companion;
             companionFiles.merge(
