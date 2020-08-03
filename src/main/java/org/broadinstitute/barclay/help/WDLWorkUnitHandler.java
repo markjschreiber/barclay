@@ -457,8 +457,10 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
             final String wdlType,
             final String defaultWDLValue) {
 
-        if (defaultWDLValue.equals("null") || defaultWDLValue.equals("\"\"") || defaultWDLValue.equals("[]")) {
+        if (defaultWDLValue.equals("null") || defaultWDLValue.equals("\"\"")) {
             return defaultWDLValue;
+        } else if (defaultWDLValue.equals("[]")) {
+            return "null";
         } else if (defaultWDLValue.startsWith("[") && wdlType.equals("Array[String]")) {
             // the array is already populated with a value (since we didn't execute the "[]" branch above),
             // so quote the individual values

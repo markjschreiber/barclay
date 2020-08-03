@@ -19,18 +19,18 @@
   "TestArgumentContainer.usesFieldNameForArgName":   "String",
 
   "TestArgumentContainer.enumSetLong": ["ENUM_VALUE_1"],
-  "TestArgumentContainer.fullAnonymousArgName": [],
-  "TestArgumentContainer.mutexSourceField": [],
-  "TestArgumentContainer.mutexTargetField1": [],
-  "TestArgumentContainer.mutexTargetField2": [],
+  "TestArgumentContainer.fullAnonymousArgName": null,
+  "TestArgumentContainer.mutexSourceField": null,
+  "TestArgumentContainer.mutexTargetField1": null,
+  "TestArgumentContainer.mutexTargetField2": null,
   "TestArgumentContainer.optionalClpEnum": "ENUM_VALUE_1",
   "TestArgumentContainer.optionalDouble": 2.15,
   "TestArgumentContainer.optionalDoubleList": [100.0, 99.9, 99.0, 90.0],
-  "TestArgumentContainer.optionalFileList": [],
+  "TestArgumentContainer.optionalFileList": null,
   "TestArgumentContainer.optionalFlag": false,
-  "TestArgumentContainer.optionalInputFilesFromArgCollection": [],
+  "TestArgumentContainer.optionalInputFilesFromArgCollection": null,
   "TestArgumentContainer.optionalStringInputFromArgCollection": null,
-  "TestArgumentContainer.optionalStringList": [],
-  "TestArgumentContainer.testPlugin": []
+  "TestArgumentContainer.optionalStringList": null,
+  "TestArgumentContainer.testPlugin": null
 
 }
