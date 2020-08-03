@@ -62,12 +62,12 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     /**
      * name of the top level freemarker map entry for required companion resources
      */
-    public static final String requiredCompanions = "requiredCompanions";
+    public static final String REQUIRED_COMPANIONS = "requiredCompanions";
 
     /**
      * name of the top level freemarker map entry for optional companion resources
      */
-    public static final String optionalCompanions = "optionalCompanions";
+    public static final String OPTIONAL_COMPANIONS = "optionalCompanions";
 
     /**
      * the name used in the freemarker template as an argument placeholder for positional args; this constant
@@ -84,11 +84,11 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
 
     // keep track of required companion files (Map<argName, List<Map<companionName, attributes>>>) for
     // arguments for this work unit
-    final Map<String, List<Map<String, Object>>> requiredCompanionFiles = new HashMap<>();
+    final Map<String, List<Map<String, String>>> requiredCompanionFiles = new HashMap<>();
 
     // keep track of optional companion files (Map<argName, List<Map<companionName, attributes>>>) for
     // arguments for this work unit
-    final Map<String, List<Map<String, Object>>> optionalCompanionFiles = new HashMap<>();
+    final Map<String, List<Map<String, String>>> optionalCompanionFiles = new HashMap<>();
 
     /**
      * Create the WDL work unit handler for a single work unit.
@@ -114,7 +114,8 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
         // add the properties required by the WDL template for workflow outputs, required outputs and companions
         currentWorkUnit.getRootMap().put(RUNTIME_OUTPUTS, runtimeOutputs);
         currentWorkUnit.getRootMap().put(REQUIRED_OUTPUTS, requiredOutputs);
-        currentWorkUnit.getRootMap().put(requiredCompanions, requiredCompanionFiles);
+        currentWorkUnit.getRootMap().put(REQUIRED_COMPANIONS, requiredCompanionFiles);
+        currentWorkUnit.getRootMap().put(OPTIONAL_COMPANIONS, optionalCompanionFiles);
     }
 
     /**
@@ -216,44 +217,66 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
             }
         }
 
-        final List<Map<String, Object>> argCompanions = new ArrayList<>();
+        final List<Map<String, String>> requiredCompanions = new ArrayList<>();
+        final List<Map<String, String>> optionalCompanions = new ArrayList<>();
 
         if (workflowInput != null) {
             for (final String companion : workflowInput.requiredCompanions()) {
-                final String companionArgOption = LONG_OPTION_PREFIX + companion;
+                final Map<String, String> companionMap = createCompanionMapEntry(wdlName, companion);
+                if (resourceIsOptional) {
+                    // Even though this is a required optional, it can only be treated as required if the
+                    // source is required; if the source is optional, then the companions have to be optional
+                    // too, since they can't be required...
+                    optionalCompanions.add(companionMap);
+                } else {
+                    requiredCompanions.add(companionMap);
+                }
+            }
 
-                final Map<String, Object> companionMap = new HashMap<>();
-                companionMap.put("name", companionArgOption);
-                companionMap.put("summary",
-                        String.format(
-                                "Companion resource for %s",
-                                wdlName.equals(POSITIONAL_ARGS) ?
-                                        POSITIONAL_ARGS :
-                                        wdlName.substring(2)));
-                argCompanions.add(companionMap);
+            for (final String companion : workflowInput.optionalCompanions()) {
+                final Map<String, String> companionMap = createCompanionMapEntry(wdlName, companion);
+                optionalCompanions.add(companionMap);
             }
         }
 
         if (workflowOutput != null) {
             for (final String companion : workflowOutput.requiredCompanions()) {
-                final String companionArgOption = LONG_OPTION_PREFIX + companion;
-
-                final Map<String, Object> companionMap = new HashMap<>();
-                companionMap.put("name", companionArgOption);
-                companionMap.put("summary",
-                        String.format(
-                                "Companion resource for %s",
-                                wdlName.equals(POSITIONAL_ARGS) ?
-                                        POSITIONAL_ARGS :
-                                        wdlName.substring(2)));
-                argCompanions.add(companionMap);
-                runtimeOutputs.put(companionArgOption, wdlType);
-                if (!resourceIsOptional) {
-                    requiredOutputs.put(companionArgOption, wdlType);
+                final Map<String, String> companionMap = createCompanionMapEntry(wdlName, companion);
+                runtimeOutputs.put(companionMap.get("name"), wdlType);
+                if (resourceIsOptional) {
+                    optionalCompanions.add(companionMap);
+                } else {
+                    // required companions are only required if the source is required; if the source is
+                    // optional, then the companions have to be optional too, since they can't be required...
+                    requiredCompanions.add(companionMap);
+                    requiredOutputs.put(companionMap.get("name"), wdlType);
                 }
             }
+            for (final String companion : workflowOutput.optionalCompanions()) {
+                final Map<String, String> companionMap = createCompanionMapEntry(wdlName, companion);
+                runtimeOutputs.put(companionMap.get("name"), wdlType);
+                if (!resourceIsOptional) {
+                    requiredOutputs.put(companionMap.get("name"), wdlType);
+                    requiredCompanions.add(companionMap);
+                }
+                optionalCompanions.add(companionMap);
+            }
         }
-        requiredCompanionFiles.put(wdlName, argCompanions);
+        requiredCompanionFiles.put(wdlName, requiredCompanions);
+        optionalCompanionFiles.put(wdlName, optionalCompanions);
+    }
+
+    protected Map<String, String> createCompanionMapEntry(final String sourceName, final String companionName) {
+        final Map<String, String> companionMap = new HashMap<>();
+        final String companionArgOption = LONG_OPTION_PREFIX + companionName;
+        companionMap.put("name", companionArgOption);
+        companionMap.put("summary",
+                String.format(
+                        "Companion resource for %s",
+                        sourceName.equals(POSITIONAL_ARGS) ?
+                                POSITIONAL_ARGS :
+                                sourceName.substring(2)));
+        return companionMap;
     }
 
     /**
