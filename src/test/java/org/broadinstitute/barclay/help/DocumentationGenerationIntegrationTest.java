@@ -48,10 +48,23 @@ public class DocumentationGenerationIntegrationTest {
             "org_broadinstitute_barclay_help_testinputs_TestExtraDocs"
     );
 
-    private static final List<String> getDocletTestArgs(final List<String> sourcePathArgs) {
+    // Class wrapper to hold test args. This is required because to when running tests, NGTest/gradle spew
+    // the entire serialized test params to the console for every test, which winds up exceeding the travis
+    // test log size.
+    private static class DocletTestArgsWrapper {
+        final List<String> testArgs;
+
+        public DocletTestArgsWrapper(final List<String> testArgs) {
+            this.testArgs = testArgs;
+        }
+
+        public List<String> getArgsList() { return testArgs; }
+    }
+
+    private static final DocletTestArgsWrapper getDocletTestArgs(final List<String> sourcePathArgs) {
         final List<String> argList = new ArrayList<>(sourcePathArgs);
         argList.addAll(COMMON_ARG_LIST);
-        return argList;
+        return new DocletTestArgsWrapper(argList);
     }
 
     private static List<String> docArgList(final Class<?> docletClass, final List<String> docletArgs, final File templatesFolder, final File outputDir,
@@ -276,7 +289,7 @@ public class DocumentationGenerationIntegrationTest {
     @Test(dataProvider = "getDocGenTestParams")
     public void testDocGenRoundTrip(
             final Class<?> docletClass,
-            final List<String> docletArgs,
+            final DocletTestArgsWrapper docletArgs,
             final File inputTemplatesFolder,
             final File expectedDir,
             final String indexFileBaseName,
@@ -294,7 +307,7 @@ public class DocumentationGenerationIntegrationTest {
         outputDir.deleteOnExit();
 
         // pull all our arguments together:
-        List<String> javadocArgs = docArgList(docletClass, docletArgs, inputTemplatesFolder, outputDir, requestedIndexFileExtension, requestedOutputFileExtension);
+        List<String> javadocArgs = docArgList(docletClass, docletArgs.getArgsList(), inputTemplatesFolder, outputDir, requestedIndexFileExtension, requestedOutputFileExtension);
         for (int i = 0 ; i < customDocletArgs.length; ++i) {
             javadocArgs.add(customDocletArgs[i]);
         }
