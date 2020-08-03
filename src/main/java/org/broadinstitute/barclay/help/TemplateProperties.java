@@ -1,18 +1,28 @@
 package org.broadinstitute.barclay.help;
 
+/**
+ * String constants for properties used in the various freemarker templates.
+ */
 public class TemplateProperties {
 
+    // Properties used by the base doc gen system
     public final static String ARGUMENTS_POSITIONAL = "positional";
 
-    // single argument map
-    public final static String ARGUMENT_DEFAULT_VALUE = "defaultValue";
+    // Single argument map properties
     public final static String ARGUMENT_NAME = "name";
-    public final static String ARGUMENT_REQUIRED = "required";
     public final static String ARGUMENT_TYPE = "type";
     public final static String ARGUMENT_SUMMARY = "summary";
+    public final static String ARGUMENT_REQUIRED = "required";
+    public final static String ARGUMENT_DEFAULT_VALUE = "defaultValue";
 
-    //WDL Gen template property names
+    // Properties specific to WDL generation
+
+    // workflow/task argument names need to be wdl-conforming, but we need to preserve the actual arg name
+    // for use in the command block
     public final static String WDL_ARGUMENT_ACTUAL_NAME = "actualArgName";
+
+    // The WDL input type (as opposed to the acutal/output type; these differ when an input is the name of
+    // an output file. The input type is (String) but the output type is File.
     public final static String WDL_ARGUMENT_INPUT_TYPE = "wdlinputtype";
 
     /**

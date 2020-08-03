@@ -175,7 +175,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
             for (final String companion : workflowInput.requiredCompanions()) {
                 final Map<String, String> companionMap = createCompanionMapEntry(wdlName, companion);
                 if (resourceIsOptional) {
-                    // Even though this is a required optional, it can only be treated as required if the
+                    // Even though this is a required companion, it can only be treated as required if the
                     // source is required; if the source is optional, then the companions have to be optional
                     // too, since they can't be required...
                     optionalCompanions.add(companionMap);
@@ -370,11 +370,11 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
     /**
      * If this type is for an arg that is a WorkflowResource that is a workflow output, and its type is file,
      * we need to use a different type (String) as the input type for this arg to prevent the workflow manager
-     * from attempting to localize the (non-existent) output file when localizing inputs. Transform
+     * from attempting to localize the (non-existent) output file when localizing inputs.
      *
      * @param workflowOutput WorkflowResource for this type instance, if any (may be null)
      * @param convertedWDLType the wdl type for this type instance
-     * @return
+     * @return the type to use for the workflow/task input for this argument
      */
     protected String transformWorkflowResourceOutputTypeToInputType(
             final WorkflowOutput workflowOutput,
@@ -400,9 +400,9 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
      * Return the default value suitably formatted as a JSON value. This primarily involves quoting strings and enum
      * values, including arrays thereof.
      *
-     * @param wdlType
-     * @param defaultWDLValue
-     * @return
+     * @param wdlType a wdl type
+     * @param defaultWDLValue the default wdl value for this type
+     * @return the default value formatted as a JSON value
      */
     protected String defaultValueAsJSON(
             final String wdlType,
