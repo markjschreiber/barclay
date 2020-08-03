@@ -47,7 +47,7 @@
 <#noparse>  "</#noparse>${name}.${companion.name?substring(2)}<#noparse>"</#noparse>: null,
             </#list>
       </#if>
-  <#if heading?starts_with("Positional")>
+      <#if heading?starts_with("Positional")>
 <#noparse>  "</#noparse>${name}.${positionalArgs}<#noparse>"</#noparse>: <#rt/>
       <#else>
 <#noparse>  "</#noparse>${name}.${arg.name?substring(2)}<#noparse>"</#noparse>: <#rt/>

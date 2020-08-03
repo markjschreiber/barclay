@@ -3,7 +3,7 @@ package org.broadinstitute.barclay.argparser;
 import java.lang.annotation.*;
 
 /**
- * Used to annotate which fields of a CommandLineProgram are input or output file resources from the perspective
+ * Used to annotate which @Arguments of a CommandLineProgram are input or output file resources from the perspective
  * of a workflow execution engine.
  */
 @Retention(RetentionPolicy.RUNTIME)
