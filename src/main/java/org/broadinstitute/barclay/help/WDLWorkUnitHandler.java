@@ -127,7 +127,7 @@ public class WDLWorkUnitHandler extends DefaultDocWorkUnitHandler {
                     final Map<String, Object> companionMap = new HashMap<>();
                     companionMap.put("name", companion);
                     companionMap.put("synonyms", "");
-                    companionMap.put("summary", "Companion resource for: " + companionMap.get("summary"));
+                    companionMap.put("summary", "Companion resource for: " + m.get("summary"));
                     argCompanions.add(companionMap);
                 }
                 argCompanionResourceArgMaps.put(argName, argCompanions);

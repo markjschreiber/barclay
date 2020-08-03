@@ -19,8 +19,8 @@ version 1.0
 #  Required Tool Arguments
 #    requiredClpEnum                                    Required Clp enum                                           
 #    requiredFileList                                   Required file list                                          
-#    companionDictionary                                Required file list                                          
-#    companionIndex                                     Required file list                                          
+#    companionDictionary                                Companion resource for: Required file list                  
+#    companionIndex                                     Companion resource for: Required file list                  
 #    requiredInputFilesFromArgCollection                Required input files from argument collection               
 #    requiredStringInputFromArgCollection               Required string input from argument collection              
 #    requiredStringList                                 A required list of strings                                  
